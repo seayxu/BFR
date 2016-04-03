@@ -43,7 +43,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FileInfo.cs" />
+    <Compile Include="ControlInvoke\CheckBoxInvoke.cs" />
+    <Compile Include="ControlInvoke\Invokes.cs" />
+    <Compile Include="ControlInvoke\LabelInvoke.cs" />
+    <Compile Include="ControlInvoke\ProgressBarInvoke.cs" />
+    <Compile Include="ControlInvoke\RadioButtonInvoke.cs" />
+    <Compile Include="ControlInvoke\TextBoxInvoke.cs" />
+    <Compile Include="FileInfos.cs" />
     <Compile Include="FrmMain.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -78,7 +84,11 @@
   <ItemGroup>
     <Content Include="0.ico" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy "$(TargetPath)" "$(SolutionDir)History\$(TargetFileName)"</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

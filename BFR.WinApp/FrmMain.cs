@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BFR.WinApp.ControlInvoke;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -14,15 +15,38 @@ namespace BFR.WinApp
         /// <summary>
         /// 文件列表
         /// </summary>
-        List<FileInfo> _files;
+        List<FileInfos> _files;
         /// <summary>
         /// 根目录
         /// </summary>
         string _dir;
+        /// <summary>
+        /// 创建时间
+        /// </summary>
+        DateTime? _createTime;
+        /// <summary>
+        /// 修改时间
+        /// </summary>
+        DateTime? _modifiedTime;
         public FrmMain()
         {
             InitializeComponent();
-            Msg("");
+            this.btnStart.Click+=btnStart_Click;
+            this.btnSelectFiles.Click += btnSelectFiles_Click;
+            this.dtpCreateTime.ValueChanged += new System.EventHandler(this.DateTimePicker_ValueChanged);
+            this.tbCreateTime.Leave += new System.EventHandler(this.TextBoxTime_Leave);
+            this.dtpModifiedTime.ValueChanged += new System.EventHandler(this.DateTimePicker_ValueChanged);
+            this.tbModifiedTime.Leave += new System.EventHandler(this.TextBoxTime_Leave);
+            this.lnkAbout.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnkAbout_LinkClicked);
+            this.rbtnLower.Click += new System.EventHandler(this.rbtn_Click);
+            this.rbtnUpper.Click += new System.EventHandler(this.rbtn_Click);
+
+            this.lblMsg.Text = "就绪";
+            this.tbCreateTime.Text = "";
+            this.tbModifiedTime.Text = "";
+            this.progressBar1.Visible = false;
+            this.rbtnLower.AutoCheck = false;
+            this.rbtnUpper.AutoCheck = false;
         }
 
         /// <summary>
@@ -40,11 +64,11 @@ namespace BFR.WinApp
             if (result == DialogResult.Yes || result == DialogResult.OK)
             {
                 _dir = GetFileDir(dialog.FileName);
-                _files = new List<FileInfo>();
+                _files = new List<FileInfos>();
 
                 foreach (var item in dialog.FileNames)
                 {
-                    _files.Add(new FileInfo(item));
+                    _files.Add(new FileInfos(item));
                 }
 
                 Msg("已选择" + _files.Count + "个文件");
@@ -65,12 +89,12 @@ namespace BFR.WinApp
         {
             try
             {
-                if (string.IsNullOrEmpty(this.tbReplacedText.Text.Trim()) &&
-                    string.IsNullOrEmpty(this.tbReName.Text.Trim()))
-                {
-                    Msg("请填写操作参数:替换或者重命名相关信息");
-                    return;
-                }
+                this.Cursor = Cursors.WaitCursor;
+                int progress = 1;
+                this.TextBoxTime_Leave(this.tbCreateTime, null);
+                this.TextBoxTime_Leave(this.tbModifiedTime, null);
+                SetProgressBarVisible(true);
+                UpdateProgressBar(0, 0, 0);
 
                 if (this._files == null || this._dir == null)
                 {
@@ -78,30 +102,44 @@ namespace BFR.WinApp
                     return;
                 }
 
+                if (string.IsNullOrEmpty(this.tbReplacedText.Text.Trim()) &&
+                    string.IsNullOrEmpty(this.tbReName.Text.Trim()) &&
+                    !this.rbtnLower.Checked && !this.rbtnUpper.Checked &&
+                    string.IsNullOrEmpty(this.tbCreateTime.Text) &&
+                    string.IsNullOrEmpty(this.tbModifiedTime.Text))
+                {
+                    Msg("请填写操作参数:替换或者重命名相关信息");
+                    return;
+                }
+
                 if (this.cbBak.Checked)
                 {
-                    Msg("备份中……");
                     string tmpPath = _dir + "tmp\\";
                     if (!Directory.Exists(tmpPath))
                     {
                         Directory.CreateDirectory(tmpPath);
                     }
-                    foreach (var name in _files)
+
+                    foreach (FileInfos file in _files)
                     {
-                        File.Copy(_dir + name, tmpPath + name);
+                        Msg("备份中:" + progress + "/" + _files.Count);
+                        UpdateProgressBar(progress, 1, _files.Count);
+                        File.Copy(_dir + file.Name, tmpPath + file.Name,true);
+                        progress++;
                     }
                 }
 
                 Msg("重命名中……");
-                List<FileInfo> fileList = new List<FileInfo>();
+                List<FileInfos> fileList = new List<FileInfos>();
 
                 int counter = 0;
 
+                //0:不修改;1:替换;2:重命名;
                 int type = 0;
-
+                progress = 1;
                 if (!string.IsNullOrEmpty(this.tbReName.Text.Trim()))
                 {
-                    type = 1;
+                    type = 2;
                     counter = (int)this.nudStart.Value;
                     if (this._files.Count > (this.nudBit.Value * 10 - 1 - this.nudStart.Value))
                     {
@@ -111,17 +149,20 @@ namespace BFR.WinApp
                 }
                 else if (!string.IsNullOrEmpty(this.tbReplacedText.Text.Trim()))
                 {
-                    type = 0;
+                    type = 1;
                 }
 
-                foreach (FileInfo info in _files)
+                bool extUpper = Invokes.GetRadioButtonChecked(this.rbtnUpper);
+                bool extLower = Invokes.GetRadioButtonChecked(this.rbtnLower);
+
+                foreach (FileInfos info in _files)
                 {
                     string tmp = info.SafeName;
-                    if (type == 0)//替换
+                    if (type == 1)//替换
                     {
                         tmp = info.SafeName.Replace(this.tbReplacedText.Text.Trim(), this.tbReplaceText.Text.Trim());
                     }
-                    else if (type == 1)//重命名-序号
+                    else if (type == 2)//重命名-序号
                     {
                         tmp = this.tbReName.Text.Trim() +
                             this.tbConnector.Text.Trim() +
@@ -130,15 +171,43 @@ namespace BFR.WinApp
 
                     if (File.Exists(info.FullName))
                     {
-                        FileInfo _info = new FileInfo();
+                        Msg("重命名中:" + progress + "/" + _files.Count);
+                        UpdateProgressBar(progress, 1, _files.Count);
+                        string _ext = info.Ext;
+                        if (!string.IsNullOrEmpty(_ext))
+                        {
+                            if (extUpper)
+                            {
+                                _ext = _ext.ToUpper();
+                            }
+                            else if (extLower)
+                            {
+                                _ext = _ext.ToLower();
+                            } 
+                        }
+
+                        FileInfos _info = new FileInfos();                        
                         _info.Dir = info.Dir;
-                        _info.Ext = info.Ext;
+                        _info.Ext = _ext;
                         _info.SafeName = tmp;
-                        _info.Name = tmp + info.Ext;
-                        _info.FullName = info.Dir + tmp + info.Ext;
+                        _info.Name = tmp + _ext;
+                        _info.FullName = info.Dir + tmp + _ext;
                         fileList.Add(_info);
-                        File.Move(info.FullName, _info.FullName);
+
+                        FileInfo file = new FileInfo(info.FullName);
+                        if (_createTime != null)
+                        {
+                            file.CreationTime = (DateTime)_createTime;
+                            file.LastAccessTime = (DateTime)_createTime; 
+                        }
+                        if (_modifiedTime != null)
+                        {
+                            file.LastWriteTime = (DateTime)_modifiedTime;
+                            file.LastAccessTime = (DateTime)_modifiedTime;
+                        }
+                        file.MoveTo(_info.FullName);
                     }
+                    progress++;
                     counter++;
                 }
                 Msg("重命名完成");
@@ -147,7 +216,13 @@ namespace BFR.WinApp
             }
             catch (Exception ex)
             {
-                Msg("异常");
+                Msg("发生异常");
+            }
+            finally
+            {
+                SetProgressBarVisible(false);
+                UpdateProgressBar(0, 0, 0);
+                this.Cursor = Cursors.Default;
             }
         }
 
@@ -163,6 +238,94 @@ namespace BFR.WinApp
         }
 
         /// <summary>
+        /// 时间选择控件值改变事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void DateTimePicker_ValueChanged(object sender, EventArgs e)
+        {
+            DateTimePicker time = (DateTimePicker)sender;
+            if (time.Name == this.dtpCreateTime.Name)
+            {
+                Invokes.SetTextBoxText(this.tbCreateTime, this.dtpCreateTime.Value.ToString("yyyy-MM-dd HH:mm:ss"));
+            }
+            else
+            {
+                Invokes.SetTextBoxText(this.tbModifiedTime, this.dtpModifiedTime.Value.ToString("yyyy-MM-dd HH:mm:ss"));
+            }
+        }
+
+        /// <summary>
+        /// 时间修改事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void TextBoxTime_Leave(object sender, EventArgs e)
+        {
+            Control ctrl = (Control)sender;
+            if (ctrl is TextBox)
+            {
+                TextBox box = (TextBox)sender;
+                if (box.Name == this.tbCreateTime.Name)
+                {
+                    try
+                    {
+                        if (!string.IsNullOrEmpty(this.tbCreateTime.Text.Trim()))
+                        {
+                            _createTime = DateTime.Parse(this.tbCreateTime.Text.Trim());
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        _createTime = null;
+                        Msg("创建时间格式不对");
+                        Invokes.SetTextBoxText(this.tbCreateTime, "");
+                    }
+                }
+                else
+                {
+                    try
+                    {
+                        if (!string.IsNullOrEmpty(this.tbModifiedTime.Text.Trim()))
+                        {
+                            _modifiedTime = DateTime.Parse(this.tbModifiedTime.Text.Trim());
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        _modifiedTime = null;
+                        Msg("修改时间格式不对");
+                        Invokes.SetTextBoxText(this.tbModifiedTime, "");
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 单选按钮单击事件
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void rbtn_Click(object sender, EventArgs e)
+        {
+            RadioButton radio = (RadioButton)sender;
+            bool check = radio.Checked;
+            if (radio.Name==this.rbtnLower.Name)
+            {
+                Invokes.SetRadioButtonChecked(this.rbtnLower, !check);
+                check = Invokes.GetRadioButtonChecked(this.rbtnUpper);
+                Invokes.SetRadioButtonChecked(this.rbtnUpper, check ? false : check);
+            }
+            else
+            {
+                Invokes.SetRadioButtonChecked(this.rbtnUpper, !check);
+                check = Invokes.GetRadioButtonChecked(this.rbtnLower);
+                Invokes.SetRadioButtonChecked(this.rbtnLower, check ? false : check);
+            }
+
+        }
+
+        /// <summary>
         /// 初始化ListView
         /// </summary>
         public void FilesListInit()
@@ -174,7 +337,7 @@ namespace BFR.WinApp
             }
             this.FilesList.Items.Clear();
             int index = 1;
-            foreach (FileInfo info in _files)
+            foreach (FileInfos info in _files)
             {
                 ListViewItem item = new ListViewItem(index.ToString());
                 item.SubItems.Add(info.Name);
@@ -237,7 +400,30 @@ namespace BFR.WinApp
         /// <param name="info"></param>
         public void Msg(string info)
         {
-            this.lblMsg.Text = info;
+            Invokes.SetLabelText(this.lblMsg, info);
         }
+
+        /// <summary>
+        /// 更新进度条
+        /// </summary>
+        /// <param name="value"></param>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        public void UpdateProgressBar(int value,int min,int max)
+        {
+            Invokes.SetProgressBarMaxValue(this.progressBar1, max);
+            Invokes.SetProgressBarMinValue(this.progressBar1, min);
+            Invokes.SetProgressBarValue(this.progressBar1, value);
+        }
+
+        /// <summary>
+        /// 设置进度条可见
+        /// </summary>
+        /// <param name="visible"></param>
+        public void SetProgressBarVisible(bool visible)
+        {
+            Invokes.SetControlVisible(this.progressBar1, visible);
+        }
+        
     }
 }

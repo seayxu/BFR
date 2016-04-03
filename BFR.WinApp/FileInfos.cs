@@ -7,7 +7,7 @@ namespace BFR.WinApp
     /// <summary>
     /// 文件信息类
     /// </summary>
-    public class FileInfo
+    public class FileInfos
     {
         /// <summary>
         /// 文件路径,以\结尾
@@ -34,13 +34,13 @@ namespace BFR.WinApp
         /// </summary>
         public string Ext { get; set; }
 
-        public FileInfo() { }
+        public FileInfos() { }
 
         /// <summary>
         /// 文件信息类
         /// </summary>
         /// <param name="fullname">包含路径的文件</param>
-        public FileInfo(string fullname)
+        public FileInfos(string fullname)
         {
             string dir = fullname.Remove(fullname.LastIndexOf("\\") + 1);
             string name = fullname.Replace(dir, "");
@@ -59,7 +59,7 @@ namespace BFR.WinApp
         /// </summary>
         /// <param name="dir">文件所在的目录</param>
         /// <param name="name">文件名称,包含扩展名</param>
-        public FileInfo(string dir,string name)
+        public FileInfos(string dir,string name)
         {
             if (!dir.EndsWith("\\"))
             {
