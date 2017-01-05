@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
 
@@ -47,6 +48,8 @@ namespace BFR.WinApp
             this.progressBar1.Visible = false;
             this.rbtnLower.AutoCheck = false;
             this.rbtnUpper.AutoCheck = false;
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+            this.lblVersion.Text = string.Format("v{0}.{1}.{2}", version.Major, version.Minor, version.Build);
         }
 
         /// <summary>
@@ -141,7 +144,8 @@ namespace BFR.WinApp
                 {
                     type = 2;
                     counter = (int)this.nudStart.Value;
-                    if (this._files.Count > (this.nudBit.Value * 10 - 1 - this.nudStart.Value))
+                    var max = Math.Pow(10, (double) this.nudBit.Value) - 1;
+                    if (this._files.Count > (max - (int)this.nudStart.Value))
                     {
                         Msg("序号位数最大值小于所选文件数,请更正序号位数");
                         return;
@@ -213,6 +217,10 @@ namespace BFR.WinApp
                 Msg("重命名完成");
                 _files = fileList;
                 FilesListInit();
+                this.tbReplaceText.Text = "";
+                this.tbReplacedText.Text = "";
+                this.tbReName.Text = "";
+                this.tbConnector.Text = "";
             }
             catch (Exception ex)
             {
@@ -233,7 +241,7 @@ namespace BFR.WinApp
         /// <param name="e"></param>
         private void lnkAbout_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            this.lnkAbout.Links[0].LinkData = "https://github.com/SeayXu/BFR";
+            this.lnkAbout.Links[0].LinkData = "https://github.com/seayxu/BFR";
             System.Diagnostics.Process.Start(e.Link.LinkData.ToString());    
         }
 
@@ -423,6 +431,12 @@ namespace BFR.WinApp
         public void SetProgressBarVisible(bool visible)
         {
             Invokes.SetControlVisible(this.progressBar1, visible);
+        }
+
+        private void lnklblLastedVersion_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            this.lnklblLastedVersion.Links[0].LinkData = "https://github.com/seayxu/BFR/releases/latest";
+            System.Diagnostics.Process.Start(e.Link.LinkData.ToString());
         }
         
     }

@@ -31,7 +31,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FrmMain));
             this.lblMsg = new System.Windows.Forms.Label();
             this.lnkAbout = new System.Windows.Forms.LinkLabel();
-            this.label8 = new System.Windows.Forms.Label();
+            this.lblVersion = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.panel3 = new System.Windows.Forms.Panel();
@@ -67,6 +67,7 @@
             this.tbReplacedText = new System.Windows.Forms.TextBox();
             this.label2 = new System.Windows.Forms.Label();
             this.btnStart = new System.Windows.Forms.Button();
+            this.lnklblLastedVersion = new System.Windows.Forms.LinkLabel();
             this.panel1.SuspendLayout();
             this.panel3.SuspendLayout();
             this.panel2.SuspendLayout();
@@ -92,28 +93,29 @@
             // 
             this.lnkAbout.AutoSize = true;
             this.lnkAbout.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.lnkAbout.Location = new System.Drawing.Point(537, 4);
+            this.lnkAbout.Location = new System.Drawing.Point(532, 4);
             this.lnkAbout.Name = "lnkAbout";
             this.lnkAbout.Size = new System.Drawing.Size(31, 12);
             this.lnkAbout.TabIndex = 10;
             this.lnkAbout.TabStop = true;
             this.lnkAbout.Text = "关于";
             // 
-            // label8
+            // lblVersion
             // 
-            this.label8.AutoSize = true;
-            this.label8.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.label8.Location = new System.Drawing.Point(577, 4);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(47, 12);
-            this.label8.TabIndex = 11;
-            this.label8.Text = "v1.1.0";
+            this.lblVersion.AutoSize = true;
+            this.lblVersion.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.lblVersion.Location = new System.Drawing.Point(571, 4);
+            this.lblVersion.Name = "lblVersion";
+            this.lblVersion.Size = new System.Drawing.Size(47, 12);
+            this.lblVersion.TabIndex = 11;
+            this.lblVersion.Text = "v1.2.0";
             // 
             // panel1
             // 
             this.panel1.Controls.Add(this.progressBar1);
-            this.panel1.Controls.Add(this.label8);
+            this.panel1.Controls.Add(this.lblVersion);
             this.panel1.Controls.Add(this.lblMsg);
+            this.panel1.Controls.Add(this.lnklblLastedVersion);
             this.panel1.Controls.Add(this.lnkAbout);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.panel1.Location = new System.Drawing.Point(0, 419);
@@ -123,7 +125,7 @@
             // 
             // progressBar1
             // 
-            this.progressBar1.Location = new System.Drawing.Point(387, 2);
+            this.progressBar1.Location = new System.Drawing.Point(287, 2);
             this.progressBar1.Name = "progressBar1";
             this.progressBar1.Size = new System.Drawing.Size(100, 16);
             this.progressBar1.TabIndex = 12;
@@ -164,7 +166,7 @@
             // FullName
             // 
             this.FullName.Text = "文件";
-            this.FullName.Width = 325;
+            this.FullName.Width = 310;
             // 
             // panel2
             // 
@@ -460,6 +462,18 @@
             this.btnStart.Text = "开始";
             this.btnStart.UseVisualStyleBackColor = true;
             // 
+            // lnklblLastedVersion
+            // 
+            this.lnklblLastedVersion.AutoSize = true;
+            this.lnklblLastedVersion.Font = new System.Drawing.Font("宋体", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.lnklblLastedVersion.Location = new System.Drawing.Point(462, 4);
+            this.lnklblLastedVersion.Name = "lnklblLastedVersion";
+            this.lnklblLastedVersion.Size = new System.Drawing.Size(57, 12);
+            this.lnklblLastedVersion.TabIndex = 10;
+            this.lnklblLastedVersion.TabStop = true;
+            this.lnklblLastedVersion.Text = "最新版本";
+            this.lnklblLastedVersion.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.lnklblLastedVersion_LinkClicked);
+            // 
             // FrmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -495,7 +509,7 @@
 
         private System.Windows.Forms.Label lblMsg;
         private System.Windows.Forms.LinkLabel lnkAbout;
-        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.Label lblVersion;
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Panel panel3;
         private System.Windows.Forms.ListView FilesList;
@@ -531,6 +545,7 @@
         private System.Windows.Forms.TextBox tbModifiedTime;
         private System.Windows.Forms.DateTimePicker dtpModifiedTime;
         private System.Windows.Forms.Label label10;
+        private System.Windows.Forms.LinkLabel lnklblLastedVersion;
 
     }
 }
